@@ -23,6 +23,7 @@ const createProduct = asyncHandler(async (req, res) => {
 //get a product
 const getProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoDbId(id);
 
   try {
 
@@ -46,4 +47,34 @@ const getAllProduct = asyncHandler(async (req, res) => {
   };
 });
 
-module.exports = { createProduct, getProduct, getAllProduct };
+//update a product
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+
+  try {
+
+    const update = await Product.findByIdAndUpdate(id, req.body, { new: true });
+    res.json(update);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//delete a product
+const deleteProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+
+  try {
+
+    const deleteProduct = await Product.findByIdAndDelete(id);
+    res.json(deleteProduct);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+module.exports = { createProduct, getProduct, getAllProduct, updateProduct, deleteProduct };

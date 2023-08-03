@@ -32,14 +32,6 @@ let productSchema = new mongoose.Schema({
   images: {
     type: Array,
   },
-  color: {
-    type: String,
-    required: true,
-  },
-  brand: {
-    type: String,
-    required: true,
-  },
   sold: {
     type: Number,
     default: 0,
@@ -53,7 +45,7 @@ let productSchema = new mongoose.Schema({
     type: String,
     default: 0,
   },
-});
+}, { timestamps: true });
 
 //Export the model
 module.exports = mongoose.model('Product', productSchema);
