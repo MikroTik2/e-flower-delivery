@@ -19,16 +19,11 @@ let userSchema = new mongoose.Schema({
     default: "user",
   },
 
-  cart: {
-    type: Array,
-    default: [],
-  },
-
   isBlocked: {
     type: Boolean,
     default: false,
   },
-
+  
   address: {
     type: String,
   },
@@ -36,7 +31,8 @@ let userSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
   },
-
+  
+  cart: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 
   passwordChangeAt: Date,

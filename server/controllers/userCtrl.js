@@ -1,6 +1,4 @@
 const User = require("../models/userModel");
-const Cart = require("../models/cartModel");
-const Product = require("../models/productModel");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const asyncHandler = require("express-async-handler");
@@ -155,55 +153,6 @@ const getUser = asyncHandler(async (req, res) => {
   };
 });
 
-//add to cart 
-const userCart = asyncHandler(async (req, res) => {
-  const { cart } = req.body;
-  const { _id } = req.user;
-  validateMongoDbId(_id);
-
-  try {
-
-    let products = [];
-
-    const user = await User.findById(_id);
-
-    const alreadyExistCart = await Cart.findOne({ orderby: user._id });
-
-    if (alreadyExistCart) {
-      alreadyExistCart.remove();
-    };
-
-    for (let i = 0; i < cart.length; i++) {
-      let object = { };
-
-      object.product = cart[i]._id;
-      object.count = cart[i].count;
-
-      let getPrice = await Product.findById(cart[i]._id).select("price").exec();
-      object.price = getPrice.price;
-      products.push(object);
-    }
-
-  } catch (error) {
-    throw new Error(error);
-  };
-
-  let cartTotal = 0;
-
-  for (let i = 0; i < products.length; i++) {
-    cartTotal = cartTotal + products[i].price * products[i].count;
-  };
-
-  let newCart = await new Cart({
-    products,
-    cartTotal,
-    orderby: user?._id,
-  }).save();
-
-  res.json(newCart);
-
-});
-
 // reset a password
 const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
@@ -226,14 +175,6 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.json(user);
 });
 
-//add to wishlist
-const addToWoshlist = asyncHandler(async (req, res) => {
-  const { prodId } = req.params;
-  const { id } = req.params;
-
-
-});
-
 // update a password
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -249,6 +190,109 @@ const updatePassword = asyncHandler(async (req, res) => {
     res.json(updatePassword);
   } else {
     res.json(user);
+  };
+});
+
+//add to wishlist
+const addToWishlist = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { prodId } = req.body;
+  validateMongoDbId(_id);
+
+  try {
+
+    const user = await User.findByIdAndUpdate(_id, {
+      $addToSet: { wishlist: prodId }
+    }, { new: true });
+
+    res.json(user);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//get a wishlist
+const getWishlist = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+
+    const getWishlist = await User.findById(id).populate("wishlist");
+    res.json(getWishlist);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//add to cart 
+const addToCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { prodId } = req.body;
+  validateMongoDbId(_id);
+
+  try {
+
+    const user = await User.findByIdAndUpdate(_id, { 
+      $addToSet: { cart: prodId },
+    }, { new: true });
+
+    res.json(user);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//get a cart
+const getCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+
+  try {
+
+    const getCart = await User.findById(_id).populate("cart");
+    res.json(getCart);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//remove a cart 
+const removeFromCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { prodId } = req.body;
+
+  try {
+
+    const removeCart = await User.findByIdAndUpdate(_id, {
+      $pull: { cart: prodId },
+    }, { new: true });
+
+    res.json(removeCart);
+
+  } catch (error) {
+    throw new Error(error);
+  };
+});
+
+//clear a cart
+const clearCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { prodId } = req.body;
+
+  try {
+
+    const clear = await User.findByIdAndUpdate(_id, {
+      cart: [],
+    }, { new: true });
+
+    res.json(clear);
+
+  } catch (error) {
+    throw new Error(error);
   };
 });
 
@@ -303,4 +347,4 @@ const deleteUser = asyncHandler(async (req, res) => {
   };
 });
 
-module.exports = { createUser, loginUser, addToWoshlist, loginAdmin, userCart, resetPassword, getAllUser, logout, getUser, handleRefreshToken, deleteUser, blockUser, unBlockUser, updatePassword };
+module.exports = { createUser, loginUser, removeFromCart, addToWishlist, clearCart, getCart, getWishlist, addToCart, loginAdmin, resetPassword, getAllUser, logout, getUser, handleRefreshToken, deleteUser, blockUser, unBlockUser, updatePassword };
